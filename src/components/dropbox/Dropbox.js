@@ -69,7 +69,7 @@ function Dropbox(props) {
             image : acceptedFiles[0]
         }
         console.log(fileObject)
-        axios.post("http://localhost:3001/upload", fileObject, )*/
+        axios.post("https://file-share-be.herokuapp.com/upload", fileObject, )*/
         event.preventDefault()
         
         try{
