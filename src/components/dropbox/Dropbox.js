@@ -1,7 +1,9 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import axios from "axios"
-import backend from "../apis/backend"
+
+
+
 
 const baseStyle = {
   flex: 1,
@@ -23,9 +25,6 @@ const activeStyle = {
   borderColor: "#2196f3"
 };
 
-const acceptStyle = {
-  borderColor: "#00e676"
-};
 
 const rejectStyle = {
   borderColor: "#ff1744"
@@ -33,42 +32,85 @@ const rejectStyle = {
 
 
 function Dropbox(props) {
+  const [files, setFiles] = useState([]);
   const {
     getRootProps,
     getInputProps,
     isDragActive,
-    isDragAccept,
     isDragReject,
     acceptedFiles,
     open
   } = useDropzone({
     noClick: true,
     noKeyboard: true,
-    maxFiles:1
+    maxFiles:1,
+    onDrop: acceptedFiles => {
+      setFiles(
+        acceptedFiles.map(file =>
+          Object.assign(file, {
+            preview: URL.createObjectURL(file)
+          })
+        )
+      );}
   });
 
   const style = useMemo(
     () => ({
       ...baseStyle,
       ...(isDragActive ? activeStyle : {}),
-      ...(isDragAccept ? acceptStyle : {}),
       ...(isDragReject ? rejectStyle : {})
     }),
     [isDragActive, isDragReject]
   );
 
-  const uploadFile = ()=>{
-        console.log(acceptedFiles)
+  const uploadFile = async (event)=>{
+       /* console.log(acceptedFiles)
         const fileObject = {
             image : acceptedFiles[0]
         }
         console.log(fileObject)
-        backend.post("/upload", fileObject)
+        axios.post("http://localhost:3001/upload", fileObject, )*/
+        event.preventDefault()
+        
+        try{
+          if (props.name === undefined || props.name === ""){
+            props.notify("empty", "Please fill your Name")
+          }
+          else if(props.email === undefined || props.email === ""){
+            props.notify("empty", "Please fill Email")
+          }
+          else if(acceptedFiles === undefined || acceptedFiles.length === 0){
+            props.notify("empty", "Please select a Single File")
+          }
+          else{
+            const fd = new FormData()
+            fd.append("image", acceptedFiles[0])
+            fd.append("email", props.email)
+            fd.append("from", props.name)
+            fd.append("name", acceptedFiles[0].name)
+            const config = {
+              headers:{
+                'Content-Type':'multipart/form-data'
+              }
+            }
+            await axios.post("http://localhost:3001/upload", fd, config)
+            acceptedFiles.pop()
+            setFiles([])
+            props.notify("success", "Files Shared!")
+
+          }
+          
+        }
+        catch(err){
+          console.log(err)
+          props.notify("error", "Unable to share file")
+        }
+        
   }
 
 
 
-  const filepath = acceptedFiles.map((file, i) => (
+  const filepath = files.map((file, i) => (
     <small key={file.path}>
       {file.path}
     </small>
@@ -77,7 +119,7 @@ function Dropbox(props) {
     <div>
       <div {...getRootProps({ style  })}>
         <input {...getInputProps()} />
-        <p>Drag 'n' drop some files here</p>
+        <p>Drag 'n' drop a file here</p>
         <button type="button" onClick={open}>
           Browse
         </button>
@@ -85,7 +127,7 @@ function Dropbox(props) {
       <aside>
         <div>{filepath}</div>
       </aside>
-      <button onClick={()=>uploadFile()}style={{marginTop:"20px"}}>Upload</button>
+      <button onClick={(e)=>uploadFile(e)}style={{marginTop:"20px"}}>Upload</button>
     </div>
   );
 }
