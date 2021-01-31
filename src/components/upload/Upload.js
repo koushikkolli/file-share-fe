@@ -11,7 +11,6 @@ const Upload = ()=>{
     const inputEl = useRef()
     const inputEl1 = useRef()
     const notify = (reason, message)=>{
-      console.log(reason, message)
       if (reason === "success"){
         setEmail("")
         setName("")
