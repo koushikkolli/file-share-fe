@@ -93,7 +93,7 @@ function Dropbox(props) {
                 'Content-Type':'multipart/form-data'
               }
             }
-            await axios.post("http://localhost:3001/upload", fd, config)
+            await axios.post("https://file-share-be.herokuapp.com/upload", fd, config)
             acceptedFiles.pop()
             setFiles([])
             props.notify("success", "Files Shared!")
